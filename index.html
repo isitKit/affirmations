@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Affirmation Generator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Inter:wght@400;500&display=swap">
+<style>
+:root{--bg:#f7f5fb;--ink:#1c1a26;--muted:#625e74;--card:#fff;--line:#dcd8e8;--accent:#6a3df0;--accent-ink:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16141e;--ink:#f0eef8;--muted:#a29eb8;--card:#201d2b;--line:#332f42;--accent:#a68dff;--accent-ink:#15121f}}
+:root[data-theme="dark"]{--bg:#16141e;--ink:#f0eef8;--muted:#a29eb8;--card:#201d2b;--line:#332f42;--accent:#a68dff;--accent-ink:#15121f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Inter,system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 20px 64px}
+h1{font:800 clamp(2rem,6vw,3.2rem)/1.05 Fraunces,Georgia,serif;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 28px}
+form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:18px}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}
+legend,label{font-weight:500;padding:0}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0}
+.opt span{display:block;padding:10px 20px;border:1px solid var(--line);border-radius:999px;cursor:pointer;background:var(--bg)}
+.opt input:checked+span{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.opt input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+input[type=number]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:110px}
+button{font:500 1rem Inter,sans-serif;border-radius:8px;padding:10px 16px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input[type=number]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:28px 0 12px;gap:10px;flex-wrap:wrap}
+.bar h2{font:800 1.4rem Fraunces,Georgia,serif;margin:0}
+ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+li button{width:100%;text-align:left;padding:16px 18px;font:600 1.15rem/1.35 Fraunces,Georgia,serif;border-radius:12px;background:var(--card)}
+.empty{color:var(--muted)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+footer{margin-top:40px;color:var(--muted);font-size:.875rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Affirmation Generator</h1>
+<p class="sub">Choose who the affirmations are for and get positive statements to read, share or save.</p>
+<form id="f">
+  <fieldset>
+    <legend>Who are they for?</legend>
+    <div class="row">
+      <label class="opt"><input type="radio" name="who" value="girl" checked><span>Girls</span></label>
+      <label class="opt"><input type="radio" name="who" value="boy"><span>Boys</span></label>
+      <label class="opt"><input type="radio" name="who" value="other"><span>Other</span></label>
+    </div>
+  </fieldset>
+  <label>How many? (1–20)
+    <input type="number" id="n" min="1" max="20" value="5">
+  </label>
+  <div class="row"><button class="primary" type="submit">Generate affirmations</button></div>
+</form>
+<div class="bar"><h2 id="title">Your affirmations</h2><button id="copyAll" hidden>Copy all</button></div>
+<ul id="list"><li class="empty">Pick an option and press Generate.</li></ul>
+<footer>Click any affirmation to copy it.</footer>
+</main>
+<div id="toast" role="status"></div>
+<script>
+// The site owner's affirmations go here, one quoted line per affirmation.
+const AFFIRMATIONS={
+  girl:[
+    "You are worthy of love",
+    "You do not deserve hate",
+    "You are valid",
+    "Your existence is valid",
+    "Your experiences are valid",
+    "Your existence is desired by others",
+    "You have people who care about you, even if you can’t see it right now",
+    "You are brave",
+    "You are courageous",
+    "Your identity is yours",
+    "Be yourself",
+    "You have people who love you",
+    "You are a beautiful woman",
+    "You are loved and accepted as you are",
+    "Your existence is real",
+    "You are strong and can overcome anything",
+    "You are not your dysphoria",
+    "You are so much more",
+    "You are worthy of love and respect",
+    "You are not a burden",
+    "You are not a problem",
+    "You are not too much",
+    "You have the right to be happy",
+    "You are worth fighting for",
+    "You have the right to pursue your dreams",
+    "You are not your mistakes",
+    "You are learning and growing",
+    "You are not defined by your past",
+    "You are creating your own future",
+    "You are a human being, no matter what",
+    "You are allowed to feel",
+    "You are allowed to feel big emotions",
+    "You are perfect",
+    "You are not less than, you are equal",
+    "You are not invisible",
+    "You are seen and heard",
+    "You are not worthless",
+    "You are valued and loved",
+    "You are not powerless",
+    "You are powerful",
+    "You are in control of your life",
+    "You don’t need to prove yourself to anyone",
+    "It’s ok to be you",
+    "You are enough",
+    "I’m proud of who you are",
+    "Have trust in yourself",
+    "Choose hopefulness",
+    "Your body belongs to you",
+    "You can do anything, but you can’t do everything",
+    "Don’t compare yourself to others",
+    "You get better every day",
+    "You are capable of great things",
+    "You are worthy of all things wonderful",
+    "Believe in what’s possible for you",
+    "Your courage is more powerful than doubt",
+    "You make a difference",
+    "You make a difference when you show up fully as yourself",
+    "You are growing into your fullest self",
+    "You have the power to create change",
+    "You deserve to be taken care of",
+    "Your body deserves to be taken care of",
+    "You are beautiful, inside and out",
+    "You are not weak when you ask for help",
+    "Your true friends love and support you",
+    "You can forgive yourself for mistakes",
+    "You deserve good things",
+    "Only you can decide who you are",
+    "You are not alone",
+    "You are not alone in your journey",
+    "You belong just as much as everyone else",
+    "You are valid and valued"
+  ],
+  boy:[
+    "You are worthy of love",
+    "You do not deserve hate",
+    "You are valid",
+    "Your existence is valid",
+    "Your experiences are valid",
+    "Your existence is desired by others",
+    "You have people who care about you, even if you can’t see it right now",
+    "You are brave",
+    "You are courageous",
+    "Your identity is yours",
+    "Be yourself",
+    "You have people who love you",
+    "You are a handsome man",
+    "You are loved and accepted as you are",
+    "Your existence is real",
+    "You are strong and can overcome anything",
+    "You are not your dysphoria",
+    "You are so much more",
+    "You are worthy of love and respect",
+    "You are not a burden",
+    "You are not a problem",
+    "You are not too much",
+    "You have the right to be happy",
+    "You are worth fighting for",
+    "You have the right to pursue your dreams",
+    "You are not your mistakes",
+    "You are learning and growing",
+    "You are not defined by your past",
+    "You are creating your own future",
+    "You are a human being, no matter what",
+    "You are allowed to feel",
+    "You are allowed to feel big emotions",
+    "You are perfect",
+    "You are not less than, you are equal",
+    "You are not invisible",
+    "You are seen and heard",
+    "You are not worthless",
+    "You are valued and loved",
+    "You are not powerless",
+    "You are powerful",
+    "You are in control of your life",
+    "You don’t need to prove yourself to anyone",
+    "It’s ok to be you",
+    "You are enough",
+    "I’m proud of who you are",
+    "Have trust in yourself",
+    "Choose hopefulness",
+    "Your body belongs to you",
+    "You can do anything, but you can’t do everything",
+    "Don’t compare yourself to others",
+    "You get better every day",
+    "You are capable of great things",
+    "You are worthy of all things wonderful",
+    "Believe in what’s possible for you",
+    "Your courage is more powerful than doubt",
+    "You make a difference",
+    "You make a difference when you show up fully as yourself",
+    "You are growing into your fullest self",
+    "You have the power to create change",
+    "You deserve to be taken care of",
+    "Your body deserves to be taken care of",
+    "You are handsome, inside and out",
+    "You are not weak when you ask for help",
+    "Your true friends love and support you",
+    "You can forgive yourself for mistakes",
+    "You deserve good things",
+    "Only you can decide who you are",
+    "You are not alone",
+    "You are not alone in your journey",
+    "You belong just as much as everyone else",
+    "You are valid and valued"
+  ],
+  other:[
+    "You are worthy of love",
+    "You do not deserve hate",
+    "You are valid",
+    "Your existence is valid",
+    "Your experiences are valid",
+    "Your existence is desired by others",
+    "You have people who care about you, even if you can’t see it right now",
+    "You are brave",
+    "You are courageous",
+    "Your identity is yours",
+    "Be yourself",
+    "You have people who love you",
+    "You are a wonderful person",
+    "You are loved and accepted as you are",
+    "Your existence is real",
+    "You are strong and can overcome anything",
+    "You are not your dysphoria",
+    "You are so much more",
+    "You are worthy of love and respect",
+    "You are not a burden",
+    "You are not a problem",
+    "You are not too much",
+    "You have the right to be happy",
+    "You are worth fighting for",
+    "You have the right to pursue your dreams",
+    "You are not your mistakes",
+    "You are learning and growing",
+    "You are not defined by your past",
+    "You are creating your own future",
+    "You are a human being, no matter what",
+    "You are allowed to feel",
+    "You are allowed to feel big emotions",
+    "You are perfect",
+    "You are not less than, you are equal",
+    "You are not invisible",
+    "You are seen and heard",
+    "You are not worthless",
+    "You are valued and loved",
+    "You are not powerless",
+    "You are powerful",
+    "You are in control of your life",
+    "You don’t need to prove yourself to anyone",
+    "It’s ok to be you",
+    "You are enough",
+    "I’m proud of who you are",
+    "Have trust in yourself",
+    "Choose hopefulness",
+    "Your body belongs to you",
+    "You can do anything, but you can’t do everything",
+    "Don’t compare yourself to others",
+    "You get better every day",
+    "You are capable of great things",
+    "You are worthy of all things wonderful",
+    "Believe in what’s possible for you",
+    "Your courage is more powerful than doubt",
+    "You make a difference",
+    "You make a difference when you show up fully as yourself",
+    "You are growing into your fullest self",
+    "You have the power to create change",
+    "You deserve to be taken care of",
+    "Your body deserves to be taken care of",
+    "You are wonderful, inside and out",
+    "You are not weak when you ask for help",
+    "Your true friends love and support you",
+    "You can forgive yourself for mistakes",
+    "You deserve good things",
+    "Only you can decide who you are",
+    "You are not alone",
+    "You are not alone in your journey",
+    "You belong just as much as everyone else",
+    "You are valid and valued"
+  ]
+};
+const $=id=>document.getElementById(id);let cur=[];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1400)}
+async function copy(t,label){try{await navigator.clipboard.writeText(t);toast(label||'Copied')}catch(e){toast('Copy failed. Select the text and copy it.')}}
+$('f').onsubmit=e=>{
+  e.preventDefault();
+  const who=document.querySelector('input[name=who]:checked').value;
+  const n=Math.max(1,Math.min(20,parseInt($('n').value)||5));$('n').value=n;
+  cur=shuffle(AFFIRMATIONS[who].slice()).slice(0,n);
+  $('title').textContent='Affirmations for '+{girl:'girls',boy:'boys',other:'everyone'}[who];
+  const ul=$('list');ul.innerHTML='';
+  if(!cur.length){ul.innerHTML='<li class="empty">No affirmations have been added for this choice yet.</li>';$('copyAll').hidden=true;return}
+  cur.forEach(s=>{const li=document.createElement('li'),b=document.createElement('button');b.type='button';b.textContent=s;b.onclick=()=>copy(s);li.appendChild(b);ul.appendChild(li)});
+  $('copyAll').hidden=false;
+};
+$('copyAll').onclick=()=>copy(cur.join('\n'),'Copied all');
+</script>
+</body>
+</html>
